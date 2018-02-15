@@ -1,5 +1,5 @@
- version: '2'
- services:
+version: '2'
+services:
   db:
     restart: unless-stopped
     image: postgres:9.6
@@ -22,7 +22,7 @@
       - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
       - REDISTOGO_URL=redis://redis:6379/
       - FLASK_CONFIG=production
-    env_file: secrects.env
+    env_file: secrets.env
     command: python -u manage.py run_worker
     volumes:
       - ./data/public:/code/public
@@ -36,11 +36,11 @@
       - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
       - REDISTOGO_URL=redis://redis:6379/
       - VIRTUAL_HOST=backoffice.bewegung.jetzt
-      - LETSENCRYPT_DOMAIN=backoffice.bewegung.jetzt
+      - LETSENCRYPT_HOST=backoffice.bewegung.jetzt
       - LETSENCRYPT_EMAIL=domains@bewegung.jetzt
       - FLASK_CONFIG=production
-    env_file: secrects.env
-    command: gunicorn manage:app
+    env_file: secrets.env
+    command: gunicorn manage:app -b 0.0.0.0
     volumes:
       - ./data/public:/code/public
     expose:
