@@ -14,3 +14,7 @@ dist
 .idea
 dump.rdb
 .vscode/
+bin
+lib
+include
+pip-selfcheck.json

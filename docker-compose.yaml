@@ -1,0 +1,44 @@
+ version: '2'
+ services:
+  db:
+    image: postgres:9.6
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=backoffice
+      - POSTGRES_PASSWORD=passsword
+      - POSTGRES_DB=backoffice
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+  redis:
+    image: redis:alpine
+    volumes:
+      - ./data/redis:/data
+  worker:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
+      - REDISTOGO_URL=redis://redis
+    env_file: secrects.env
+    command: python -u manage.py run_worker
+    volumes:
+      - ./data/public:/code/public
+    links:
+      - db
+      - redis
+  web:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
+      - REDISTOGO_URL=redis://redis
+      - VIRTUAL_HOST=backoffice.bewegung.jetzt
+      - LETSENCRYPT_DOMAIN=backoffice.bewegung.jetzt
+      - LETSENCRYPT_EMAIL=domains@bewegung.jetzt
+    env_file: secrects.env
+    command: gunicorn manage:app
+    volumes:
+      - ./data/public:/code/public
+    expose:
+      - 8000
+    links:
+      - db
+      - redis
