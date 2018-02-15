@@ -1,0 +1,56 @@
+{% import 'macros/page_macros.html' as page %}
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+    <div class="ui text container"><script type="text/javascript">
+
+ function generateLink () {
+	 var data = {};
+	 for (var key of ["URL","pub","title","date"])
+		 data [key] = document.getElementById (key).value;
+	 var html = '<a href="' + data.URL + '" target="_blank" rel="noopener noreferrer">&bdquo;' + data.title + '&ldquo;</a>, ' + data.pub + ', <em>' + data.date + '</em>';
+	 document.getElementById ("wysiwyg").innerHTML = html;
+	 var link = document.getElementById ("link");
+	 link.innerHTML = html.replace (/</g,'&lt;').replace (/>/g,'&gt;');
+	 
+	 // select text
+	 if (document.body.createTextRange) { // MS
+		var range = document.body.createTextRange ();
+	    range.moveToElementText (link);
+	    range.select ();
+	 }
+	 else if (window.getSelection) { // all others
+		var selection = window.getSelection ();        
+        var range = document.createRange ();
+        range.selectNodeContents (link);
+        selection.removeAllRanges ();
+        selection.addRange (range);
+     }
+
+	 // copy to clipboard
+	 document.execCommand ('copy');
+	 
+	 // clear selection
+     if (document.selection)
+        document.selection.empty ();
+     else if (window.getSelection)
+        window.getSelection ().removeAllRanges ();
+ }
+ </script>
+</head>
+<body>
+<div><p>Dieses Formular generiert Links für den <a href="https://bewegung.jetzt/presse/">Pressespiegel von DiB</a>.</p></div>
+<table>
+<tr><td>URL:</td><td><input id="URL" type="text" size=100></td></div>
+<tr><td>Publikation:</td><td><input id="pub" type="text" size=100></td></div>
+<tr><td>Titel:</td><td><input id="title" type="text" size=100></td></div>
+<tr><td>Datum:</td><td><input id="date" type="text" size=100></td></div>
+</table>
+<br>
+<input type="submit" value="Link generieren und in Zwischenablage kopieren" onclick="generateLink ()">
+<br>
+<br>
+<div>HTML-Code: <span id="link"></span></div>
+<div>Erscheinungsbild: <span id="wysiwyg"></span></div>
+    </div>
+{% endblock %}
