@@ -8,6 +8,7 @@ from flask_wtf import CsrfProtect
 from flask_compress import Compress
 from flask_rq import RQ
 from flask_cache import Cache
+from flask_cors import CORS
 
 from config import config
 from .assets import app_css, app_js, vendor_css, vendor_js
@@ -41,7 +42,8 @@ def create_app(config_name):
     csrf.init_app(app)
     compress.init_app(app)
     RQ(app)
-    cache.init_app(app)
+    CORS(app)
+    cache.init_app(app, config=app.config)
     app.cache = cache
 
     # Register Jinja template functions

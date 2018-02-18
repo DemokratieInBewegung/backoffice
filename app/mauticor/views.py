@@ -2,17 +2,16 @@ from flask import (flash, redirect, render_template, request,
                    url_for, session, current_app, jsonify)
 from flask_login import (current_user, login_required, login_user,
                          logout_user)
-from flask_rq import get_queue
+from flask_cors import cross_origin
 
 from pprint import pformat
 
 from requests_oauthlib import OAuth2Session
 
-from mautic import MauticOauth2Client, Contacts
-
+from mautic import MauticOauth2Client, Contacts, Forms
+from .. import cache
 from . import mauticor
 import json
-
 
 CACHED_KEY = '__MAUTIC_OAUTH_TOKEN'
 
@@ -23,6 +22,40 @@ def update_token_tempfile(token):
 
 def get_oauth_token():
     return json.loads(current_app.cache.get(CACHED_KEY))
+
+
+def _get_mautic_client():
+    return MauticOauth2Client(
+            base_url=current_app.config.get("MAUTIC_BASE_URL"),
+            client_id=current_app.config.get("MAUTIC_CLIENT_ID"),
+            client_secret=current_app.config.get("MAUTIC_CLIENT_SECRET"),
+            token=get_oauth_token(),
+            token_updater=update_token_tempfile)
+
+
+class Submissions(Forms):
+    def get_submissions(self, form_id):
+        response = self._client.session.get(
+            '{url}/{form_id}/submissions'.format(
+                url=self.endpoint_url, form_id=form_id
+                )
+            )
+        return self.process_response(response)
+
+
+@mauticor.route("/petition_info/proko.json", methods=["GET"])
+@cross_origin()
+@cache.cached(timeout=300)  # we cache for 5min
+def get_proko_state():
+
+    mautic = _get_mautic_client()
+    forms = Submissions(client=mautic)
+    resp = forms.get_submissions(9)  # PROKO is dealt with FORM nr 9
+
+    return jsonify({
+            "total": resp['total'],
+            "latest": []
+        })
 
 
 @mauticor.route("/")
@@ -60,47 +93,6 @@ def callback():
             client_secret=current_app.config.get("MAUTIC_CLIENT_SECRET"),
             authorization_response=request.url)
 
-    # We use the session as a simple DB for this example.
-    update_token_tempfile(token)  # store token in /tmp/mautic_creds.json
+    update_token_tempfile(token)  
 
-    return redirect(url_for('.menu'))
-
-@mauticor.route("/petition_info/proko.js", methods=["GET"])
-def get_proko_state():
-    return """
-    document.PROKO_STATE = {}
-    """.format(json.dumps({
-            total: 1234,
-            latest: []
-        }, ))
-
-
-@mauticor.route("/menu", methods=["GET"])
-@login_required
-def menu():
-    """"""
-    return """
-    <h1>Congratulations, you have obtained an OAuth 2 token!</h1>
-    <h2>What would you like to do next?</h2>
-    <ul>
-        <li><a href="/mauticor/contacts"> Get contacts</a></li>
-    </ul>
-
-    <pre>
-    %s
-    </pre>
-    """ % pformat(get_oauth_token(), indent=4)
-
-
-@mauticor.route("/contacts", methods=["GET"])
-@login_required
-def contacts():
-    """Fetching a protected resource using an OAuth 2 token.
-    """
-    mautic = MauticOauth2Client(base_url=current_app.config.get("MAUTIC_BASE_URL"),
-                                client_id=current_app.config.get("MAUTIC_CLIENT_ID"),
-                                client_secret=current_app.config.get("MAUTIC_CLIENT_SECRET"),
-                                token=get_oauth_token(),
-                                token_updater=update_token_tempfile)
-    return jsonify(Contacts(client=mautic).get_list())
-
+    return redirect(url_for('.get_proko_state'))
