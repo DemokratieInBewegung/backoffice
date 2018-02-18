@@ -49,7 +49,18 @@ class Config:
     EMAIL_SENDER = '{app_name} Admin <{email}>'.format(
         app_name=APP_NAME, email=MAIL_USERNAME)
 
-    REDIS_URL = os.getenv('REDISTOGO_URL') or 'http://localhost:6379'
+    REDIS_URL = os.getenv('REDIS_URL', os.getenv('REDISTOGO_URL')) or 'http://localhost:6379'
+
+    # CACHING
+    CACHE_TYPE = 'filesystem'
+    CACHE_DIR = os.getenv('CACHED_DIR') or os.path.join(basedir, '__cache')
+
+
+    # MAUTIC
+    MAUTIC_BASE_URL = os.getenv('MAUTIC_BASE_URL', 'https://mautic.bewegung.jetzt/')
+    MAUTIC_CLIENT_ID = os.environ.get('MAUTIC_APP_ID')
+    MAUTIC_CLIENT_SECRET = os.environ.get('MAUTIC_APP_SECRET')
+    MAUTIC_REDIRECT_URI = 'https://backoffice.bewegung.jetzt/mauticor/callback'
 
     RAYGUN_APIKEY = os.environ.get('RAYGUN_APIKEY')
 
@@ -64,7 +75,7 @@ class Config:
     RQ_DEFAULT_HOST = url.hostname
     RQ_DEFAULT_PORT = url.port
     RQ_DEFAULT_PASSWORD = url.password
-    RQ_DEFAULT_DB = 0
+    RQ_DEFAULT_DB = 1 # 0 will be used for cache
 
     @staticmethod
     def init_app(app):
@@ -74,6 +85,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     ASSETS_DEBUG = True
+    MAUTIC_REDIRECT_URI = "http://localhost:5000/mauticor/callback"
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
     print('THIS APP IS IN DEBUG MODE. YOU SHOULD NOT SEE THIS IN PRODUCTION.')
@@ -90,6 +102,8 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
     SSL_DISABLE = (os.environ.get('SSL_DISABLE') or 'True') == 'True'
+    CACHE_TYPE = 'redis'
+    CACHE_REDIS_URL = os.getenv('CACHE_REDIS_URL')
 
     @classmethod
     def init_app(cls, app):

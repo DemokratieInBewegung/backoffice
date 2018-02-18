@@ -7,6 +7,7 @@ from flask_assets import Environment
 from flask_wtf import CsrfProtect
 from flask_compress import Compress
 from flask_rq import RQ
+from flask_cache import Cache
 
 from config import config
 from .assets import app_css, app_js, vendor_css, vendor_js
@@ -17,6 +18,7 @@ mail = Mail()
 db = SQLAlchemy()
 csrf = CsrfProtect()
 compress = Compress()
+cache = Cache()
 
 # Set up Flask-Login
 login_manager = LoginManager()
@@ -39,6 +41,8 @@ def create_app(config_name):
     csrf.init_app(app)
     compress.init_app(app)
     RQ(app)
+    cache.init_app(app)
+    app.cache = cache
 
     # Register Jinja template functions
     from .utils import register_template_utils
@@ -64,6 +68,9 @@ def create_app(config_name):
     # Create app blueprints
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
+    from .mauticor import mauticor as mauticor
+    app.register_blueprint(mauticor, url_prefix="/mauticor")
 
     from .account import account as account_blueprint
     app.register_blueprint(account_blueprint, url_prefix='/account')

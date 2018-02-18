@@ -21,7 +21,9 @@ services:
     environment:
       - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
       - REDISTOGO_URL=redis://redis:6379/
+      - REDIS_URL=redis://redis:6379/
       - FLASK_CONFIG=production
+      - SSL_DISABLE=y
     env_file: secrets.env
     command: python -u manage.py run_worker
     volumes:
@@ -35,10 +37,12 @@ services:
     environment:
       - DATABASE_URL=postgres://backoffice:passsword@db/backoffice
       - REDISTOGO_URL=redis://redis:6379/
+      - REDIS_URL=redis://redis:6379/
       - VIRTUAL_HOST=backoffice.bewegung.jetzt
       - LETSENCRYPT_HOST=backoffice.bewegung.jetzt
       - LETSENCRYPT_EMAIL=domains@bewegung.jetzt
       - FLASK_CONFIG=production
+      - SSL_DISABLE=y
     env_file: secrets.env
     command: gunicorn manage:app -b 0.0.0.0
     volumes:
