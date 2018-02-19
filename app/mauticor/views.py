@@ -21,7 +21,9 @@ def update_token_tempfile(token):
 
 
 def get_oauth_token():
-    return json.loads(current_app.cache.get(CACHED_KEY))
+    token = json.loads(current_app.cache.get(CACHED_KEY))
+    token['expires_in'] = token['expires_at'] - time.time()
+    return token
 
 
 def _get_mautic_client():
@@ -56,6 +58,13 @@ def get_proko_state():
             "total": resp['total'],
             "latest": []
         })
+
+
+
+@mauticor.route("/token")
+@login_required
+def show_token():
+    return jsonify(get_oauth_token())
 
 
 @mauticor.route("/")
