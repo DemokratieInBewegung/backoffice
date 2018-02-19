@@ -103,7 +103,7 @@ class ProductionConfig(Config):
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
     SSL_DISABLE = (os.environ.get('SSL_DISABLE') or 'True') == 'True'
     CACHE_TYPE = 'redis'
-    CACHE_REDIS_URL = os.getenv('CACHE_REDIS_URL')
+    CACHE_REDIS_URL = os.getenv('CACHE_REDIS_URL', os.getenv('REDIS_URL'))
 
     @classmethod
     def init_app(cls, app):
