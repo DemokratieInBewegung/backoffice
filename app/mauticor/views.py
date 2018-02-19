@@ -9,7 +9,8 @@ from pprint import pformat
 from requests_oauthlib import OAuth2Session
 
 from mautic import MauticOauth2Client, Contacts, Forms
-from .. import cache
+from .. import cache, db
+from ..models import GlobalState
 from . import mauticor
 import json
 import time
@@ -18,11 +19,14 @@ CACHED_KEY = '__MAUTIC_OAUTH_TOKEN'
 
 
 def update_token_tempfile(token):
-    current_app.cache.set(CACHED_KEY, json.dumps(token))
+    state = GlobalState.get_state(CACHED_KEY)
+    state.value = json.dumps(token)
+    db.session.add(state)
+    db.session.commit()
 
 
 def get_oauth_token():
-    token = json.loads(current_app.cache.get(CACHED_KEY))
+    token = json.loads(GlobalState.get_state(CACHED_KEY).value)
     token['expires_in'] = token['expires_at'] - time.time()
     return token
 
