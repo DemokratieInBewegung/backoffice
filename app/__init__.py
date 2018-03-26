@@ -74,6 +74,9 @@ def create_app(config_name):
     from .mauticor import mauticor as mauticor
     app.register_blueprint(mauticor, url_prefix="/mauticor")
 
+    from .bookie import bookie as bookie
+    app.register_blueprint(bookie, url_prefix="/bookie")
+
     from .account import account as account_blueprint
     app.register_blueprint(account_blueprint, url_prefix='/account')
 

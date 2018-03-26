@@ -1,0 +1,86 @@
+{% extends 'layouts/base.html' %}
+{% import 'macros/form_macros.html' as f %}
+
+{% block content %}
+    <div class="ui grid container">
+        <div class="eight wide computer sixteen wide mobile centered column">
+            <h3 class="ui dividing header">Datei auswählen</h3>
+            {{ f.render_form(form) }}
+        </div>
+     </div>
+    {% if results %}
+
+    	<div class="ui grid container">
+	        <div class="wide computer sixteen wide mobile centered column">
+	            <h3 class="ui dividing header">Spendenverteilung</h3>
+	         </h3>
+	         <table class="ui celled table">
+	         	<thead>
+	         		<th>Bundesland</th>
+	         		<th>Mitgliedsbeiträge</th>
+	         		<th>Beweger*innenbeiträge</th>
+	         		<th>Spenden</th>
+	         		<th>(Auslagen)</th>
+	         		<th>-Fbox</th>
+	         		<th>-Paypal</th>
+	         		<th>-Stripe</th>
+	         		<th> = je Land/Bund</th>
+	         	</thead>
+	         	<tbody>
+		         	{% for key, vals in results|dictsort %}
+		         	<tr>
+		         		<td>{{key}}</td>
+		         		<td>{{vals.mitgliedsbeitrag|default(0)|round(2)}}</td>
+		         		<td>{{vals.bewegerin|default(0)|round(2)}}</td>
+		         		<td>{{vals.spenden|default(0)|round(2)}}</td>
+		         		<td>{{vals.abrechnung|default(0)|round(2)}}</td>
+		         		<td>{{vals.fbox|default(0)|round(2)}}</td>
+		         		<td>{{vals.paypal|default(0)|round(2)}}</td>
+		         		<td>{{vals.stripe_credit_card|default(0)|round(2)}}</td>
+		         		<td>{{vals.each|default(0)|round(2)}}</td>
+		         	</tr>
+		         	{% endfor %}
+		         	<tr>
+		         		<td><strong>Summe</strong></td>
+		         		<td>{{total.mitgliedsbeitrag|default(0)|round(2)}}</td>
+		         		<td>{{total.bewegerin|default(0)|round(2)}}</td>
+		         		<td>{{total.spenden|default(0)|round(2)}}</td>
+		         		<td>{{total.abrechnung|default(0)|round(2)}}</td>
+		         		<td>{{total.fbox|default(0)|round(2)}}</td>
+		         		<td>{{total.paypal|default(0)|round(2)}}</td>
+		         		<td>{{total.stripe_credit_card|default(0)|round(2)}}</td>
+		         		<td>{{total.each|default(0)|round(2)}}</td>
+		         	</tr>
+		         </tbody>
+	         </table>
+	        <div class="wide computer sixteen wide mobile centered column">
+	            <h4 class="ui header">Weitere</h4>
+	            <p>evtl. zweckgebunden, Beitragsgebühren noch nicht rausgerechnet</p>
+	         </div>
+	         {% if specials %}
+		         <table class="ui celled table">
+		         	<thead>
+		         		<th>Datum</th>
+		         		<th>Betrag</th>
+		         		<th>Typ</th>
+		         		<th>Bundesland</th>
+		         		<th>Nachricht</th>
+		         	</thead>
+		         	<tbody>
+				         {% for entry in specials %}
+				         	<tr>
+				         		<td>{{entry.donated_at_date}}</td>
+				         		<td>{{entry.amount}}</td>
+				         		<td>{{entry.type}}</td>
+				         		<td>{{entry.bundesland}}</td>
+				         		<td>{{entry.public_message}}</td>
+				         	</tr>
+				         {% endfor %}
+			         </tbody>
+		         </table>
+		      {% else %}
+		      	<p><em>Keine Spezialfälle gefunden</em></p>
+		      {% endif %}
+    	</div>
+	{% endif %}
+{% endblock %}
