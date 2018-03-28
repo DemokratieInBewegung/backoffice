@@ -81,7 +81,6 @@ def verteilung():
             vals['each'] = each
             for name, val in vals.items():
                 total[name] += val
-            total['each'] += each
 
 
     return render_template('bookie/verteilung.html',
